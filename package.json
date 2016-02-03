@@ -1,0 +1,36 @@
+{
+  "name": "raf-tweener",
+  "version": "1.0.0",
+  "description": "An extremely minimal tweening engine based on Tweenlite, powered by requestAnimationFrame.",
+  "main": "index.js",
+  "license": "MIT",
+  "author": {
+    "name": "Tomasz Dysinski",
+    "email": "oz@bunnybones.com",
+    "url": "https://github.com/bunnybones1"
+  },
+  "dependencies": {
+    "lerp": "^1.0.3",
+    "lodash.defaults": "^4.0.1"
+  },
+  "devDependencies": {
+    "beefy": "^2.1.5",
+    "browserify": "^13.0.0",
+    "eases": "^1.0.8"
+  },
+  "scripts": {
+    "test": "beefy test.js --open"
+  },
+  "keywords": [
+    "tween",
+    "raf"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bunnybones1/raf-tweener.git"
+  },
+  "homepage": "https://github.com/bunnybones1/raf-tweener",
+  "bugs": {
+    "url": "https://github.com/bunnybones1/raf-tweener/issues"
+  }
+}
