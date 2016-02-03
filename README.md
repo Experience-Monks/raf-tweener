@@ -5,7 +5,7 @@
 An extremely minimal tweening engine based on GSAP, powered by requestAnimationFrame.
 
 ```
-var rafTweener = require('./');
+var rafTweener = require('raf-tweener');
 var eases = require('eases');
 var target = {
 	x: 0,
