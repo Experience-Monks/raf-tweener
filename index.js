@@ -11,6 +11,8 @@ function linear(v) {
 
 var paramWhiteList = [
 	'onComplete',
+	'duration',
+	'target',
 	'onCompleteScope',
 	'onUpdate',
 	'onUpdateScope',
@@ -30,6 +32,9 @@ function to(target, duration, params) {
 	var animatedProperties = Object.keys(params).filter(function(key){
 		return paramWhiteList.indexOf(key) === -1;
 	}).map(function(key){
+		if(isNaN(target[key]) || isNaN(params[key])) {
+			throw new Error('values must be numbers');
+		}
 		return {
 			key:key,
 			valueStart: target[key],
@@ -43,9 +48,10 @@ function to(target, duration, params) {
 }
 
 var now = Date.now();
+var animationIndicesToComplete = [];
 function tick() {
 	now = Date.now();
-	animations.forEach(function(animation) {
+	animations.forEach(function(animation, i) {
 		var target = animation.target;
 		if(now > animation.startTime) {
 			var progress = animation.ease(Math.min(1, (now - animation.startTime) / animation.duration));
@@ -57,13 +63,21 @@ function tick() {
 				animation.onUpdate.call(animation.onUpdateScope);
 			}
 			if(now >= animation.endTime) {
-				if(animation.onComplete) {
-					animation.onComplete.call(animation.onCompleteScope);
-				}
-				killTweensOf(animation.target);
+				animationIndicesToComplete.push(i);
 			}
 		}
 	});
+	if(animationIndicesToComplete.length > 0) {
+		for (var i = animationIndicesToComplete.length - 1; i >= 0; i--) {
+			var index = animationIndicesToComplete[i];
+			var animation = animations[index];
+			animations.splice(index, 1);
+			if(animation.onComplete) {
+				animation.onComplete.call(animation.onCompleteScope);
+			}
+		}
+		animationIndicesToComplete.length = 0;
+	}
 }
 
 function killTweensOf(target) {
