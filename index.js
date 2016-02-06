@@ -28,6 +28,9 @@ function to(target, duration, params) {
 		duration: duration * 1000,
 		ease: linear
 	});
+	if(typeof params.ease !== 'function') {
+		throw new Error('ease must be an easing function that takes in a number (0..1) and returns a number (0..1)');
+	}
 	params.target = target;
 	var animatedProperties = Object.keys(params).filter(function(key){
 		return paramWhiteList.indexOf(key) === -1;
