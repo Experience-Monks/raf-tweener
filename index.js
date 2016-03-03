@@ -1,123 +1,51 @@
-var lerp = require('lerp');
-var defaults = require('lodash.defaults');
+var RawTweener = require('./raw-tweener');
 
-var animations = [];
-var ticking = false;
-var requestStop = false;
-
-function linear(v) {
-	return v;
-}
-
-var paramWhiteList = [
-	'onComplete',
-	'duration',
-	'target',
-	'onCompleteScope',
-	'onUpdate',
-	'onUpdateScope',
-	'delay',
-	'ease',
-	'animatedProperties'
-];
-
-function to(target, duration, params) {
-	params = params || {};
-	defaults(params, {
-		delay: 0,
-		duration: duration * 1000,
-		ease: linear
-	});
-	if(typeof params.ease !== 'function') {
-		throw new Error('ease must be an easing function that takes in a number (0..1) and returns a number (0..1)');
+function RafTweener(discreteStepDuration) {
+	RawTweener.call(this);
+	if(discreteStepDuration === undefined) {
+		this.update = this.tick;
+	} else {
+		this.discreteStepDuration = discreteStepDuration;
+		this.update = this.discreteStepTick;
 	}
-	params.target = target;
-	var animatedProperties = Object.keys(params).filter(function(key){
-		return paramWhiteList.indexOf(key) === -1;
-	}).map(function(key){
-		if(isNaN(target[key]) || isNaN(params[key])) {
-			throw new Error('values must be numbers');
-		}
-		return {
-			key:key,
-			valueStart: target[key],
-			valueEnd: params[key]
-		};
-	});
-	params.animatedProperties = animatedProperties;
-	params.startTime = Date.now() + params.delay;
-	params.endTime = params.startTime + params.duration;
-	animations.push(params);	
+	this._rafTick = this._rafTick.bind(this);
 }
 
-var now = Date.now();
-var animationIndicesToComplete = [];
-function tick() {
-	now = Date.now();
-	animations.forEach(function(animation, i) {
-		var target = animation.target;
-		if(now > animation.startTime) {
-			var progress = animation.ease(Math.min(1, (now - animation.startTime) / animation.duration));
-			// if(isNaN(progress) || progress < 0 || progress > 1) throw new Error('Should not happen.');
-			animation.animatedProperties.forEach(function(property) {
-				target[property.key] = lerp(property.valueStart, property.valueEnd, progress);
-			});
-			if(animation.onUpdate) {
-				animation.onUpdate.call(animation.onUpdateScope);
-			}
-			if(now >= animation.endTime) {
-				animationIndicesToComplete.push(i);
-			}
-		}
-	});
-	if(animationIndicesToComplete.length > 0) {
-		for (var i = animationIndicesToComplete.length - 1; i >= 0; i--) {
-			var index = animationIndicesToComplete[i];
-			var animation = animations[index];
-			animations.splice(index, 1);
-			if(animation.onComplete) {
-				animation.onComplete.call(animation.onCompleteScope);
-			}
-		}
-		animationIndicesToComplete.length = 0;
-	}
-}
+RafTweener.prototype = Object.create(RawTweener.prototype);
 
-function killTweensOf(target) {
-	for (var i = animations.length - 1; i >= 0; i--) {
-		if(animations[i].target === target) {
-			animations.splice(i, 1);
-		}
-	}
-}
-
-function rafTick() {
-	if(requestStop) {
-		requestStop = false;
+RafTweener.prototype._rafTick = function() {
+	if(this.requestStop) {
+		this.requestStop = false;
 		return;
 	}
-	tick();
-	window.requestAnimationFrame(rafTick);
-}
-
-function start() {
-	if(ticking) return;
-	ticking = true;
-	window.requestAnimationFrame(rafTick);
-}
-
-function stop() {
-	if(!ticking || requestStop) return;
-	requestStop = true;
-	ticking = false;
-}
-
-var rafTweener = {
-	to: to,
-	killTweensOf: killTweensOf,
-	tick: tick,
-	start: start,
-	stop: stop
+	var now = Date.now();
+	var delta = now - this.now;
+	this.update(delta);
+	window.requestAnimationFrame(this._rafTick);
 };
 
-module.exports = rafTweener;
+RafTweener.prototype.discreteStepTick = function(delta) {
+	var newNow = this.now + delta;
+	while(this.now < newNow) {
+		this.tick(this.discreteStepDuration);
+	}
+};
+
+RafTweener.prototype.start = function() {
+	this.now = Date.now();
+	if(this.ticking) return;
+	this.ticking = true;
+	window.requestAnimationFrame(this._rafTick);
+};
+
+RafTweener.prototype.stop = function() {
+	if(!this.ticking || this.requestStop) return;
+	this.requestStop = true;
+	this.ticking = false;
+};
+
+RafTweener.prototype.toString = function() {
+	return '[object RafTweener]';
+};
+
+module.exports = RafTweener;
