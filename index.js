@@ -18,9 +18,12 @@ RafTweener.prototype._rafTick = function() {
 		this.requestStop = false;
 		return;
 	}
-	var now = Date.now();
-	var delta = now - this.now;
-	this.update(delta);
+	var timeSnapshot = Date.now();
+	var delta = timeSnapshot - this.timeSnapshot;
+	if(!this.paused) {
+		this.update(delta);
+	}
+	this.timeSnapshot = timeSnapshot;
 	window.requestAnimationFrame(this._rafTick);
 };
 
@@ -32,7 +35,11 @@ RafTweener.prototype.discreteStepTick = function(delta) {
 };
 
 RafTweener.prototype.start = function() {
-	this.now = Date.now();
+	this.timeSnapshot = Date.now();
+	if(this.discreteStepDuration !== undefined) {
+		this.timeSnapshot -= this.timeSnapshot % this.discreteStepDuration;
+	}
+	this.now = this.timeSnapshot;
 	if(this.ticking) return;
 	this.ticking = true;
 	window.requestAnimationFrame(this._rafTick);
@@ -42,6 +49,14 @@ RafTweener.prototype.stop = function() {
 	if(!this.ticking || this.requestStop) return;
 	this.requestStop = true;
 	this.ticking = false;
+};
+
+RafTweener.prototype.pause = function() {
+	this.paused = true;
+};
+
+RafTweener.prototype.unpause = function() {
+	this.paused = false;
 };
 
 RafTweener.prototype.toString = function() {

@@ -47,7 +47,7 @@ RawTweener.prototype.to = function(target, duration, params) {
 		};
 	});
 	params.animatedProperties = animatedProperties;
-	params.startTime = Date.now() + params.delay;
+	params.startTime = this.now + params.delay;
 	params.endTime = params.startTime + params.duration;
 	params.kill = kill.bind(this, params);
 	this.animations.push(params);
