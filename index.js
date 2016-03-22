@@ -21,9 +21,13 @@ RafTweener.prototype._rafTick = function() {
 	var timeSnapshot = Date.now();
 	var delta = timeSnapshot - this.timeSnapshot;
 	if(!this.paused) {
+		var now = this.now;
 		this.update(delta);
+		delta -= this.now-now;
+	} else {
+		delta = 0;
 	}
-	this.timeSnapshot = timeSnapshot;
+	this.timeSnapshot = timeSnapshot - delta;
 	window.requestAnimationFrame(this._rafTick);
 };
 
