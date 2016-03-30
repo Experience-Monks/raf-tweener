@@ -80,7 +80,14 @@ RawTweener.prototype.tick = function(delta) {
 			var index = __animationIndicesToComplete[i];
 			var animation = animations[index];
 			animations.splice(index, 1);
-			if(animation.onComplete) {
+			var target = animation.target;
+			animation.animatedProperties.forEach(function(property) {
+				target[property.key] = property.valueEnd;
+			});
+			if(animation.onUpdate) {
+				animation.onUpdate.call(animation.onUpdateScope);
+			}
+			if(animation && animation.onComplete) {
 				animation.onComplete.call(animation.onCompleteScope);
 			}
 		}
