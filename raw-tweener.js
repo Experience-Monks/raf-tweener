@@ -54,7 +54,7 @@ RawTweener.prototype.to = function(target, duration, params) {
 	return params;
 };
 
-var __animationIndicesToComplete = [];
+var __animationsToComplete = [];
 RawTweener.prototype.tick = function(delta) {
 	this.now += delta;
 	var now = this.now;
@@ -70,15 +70,16 @@ RawTweener.prototype.tick = function(delta) {
 			if(animation.onUpdate) {
 				animation.onUpdate.call(animation.onUpdateScope);
 			}
-			if(now >= animation.endTime) {
-				__animationIndicesToComplete.push(i);
+			if(now >= animation.endTime && animations.indexOf(animation) !== -1) {
+				__animationsToComplete.push(animation);
 			}
 		}
 	});
-	if(__animationIndicesToComplete.length > 0) {
-		for (var i = __animationIndicesToComplete.length - 1; i >= 0; i--) {
-			var index = __animationIndicesToComplete[i];
-			var animation = animations[index];
+	if(__animationsToComplete.length > 0) {
+		for (var i = __animationsToComplete.length - 1; i >= 0; i--) {
+			var animation = __animationsToComplete[i];
+			var index = animations.indexOf(animation);
+			if(index === -1) continue;
 			animations.splice(index, 1);
 			var target = animation.target;
 			animation.animatedProperties.forEach(function(property) {
@@ -91,7 +92,7 @@ RawTweener.prototype.tick = function(delta) {
 				animation.onComplete.call(animation.onCompleteScope);
 			}
 		}
-		__animationIndicesToComplete.length = 0;
+		__animationsToComplete.length = 0;
 	}
 };
 
