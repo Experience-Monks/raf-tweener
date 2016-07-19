@@ -1,6 +1,6 @@
 {
   "name": "raf-tweener",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "An extremely minimal tweening engine based on Tweenlite, powered by requestAnimationFrame.",
   "main": "index.js",
   "license": "MIT",
