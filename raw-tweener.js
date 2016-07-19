@@ -75,24 +75,20 @@ RawTweener.prototype.tick = function(delta) {
 			}
 		}
 	});
-	if(__animationsToComplete.length > 0) {
-		for (var i = __animationsToComplete.length - 1; i >= 0; i--) {
-			var animation = __animationsToComplete[i];
-			var index = animations.indexOf(animation);
-			if(index === -1) continue;
-			animations.splice(index, 1);
-			var target = animation.target;
-			animation.animatedProperties.forEach(function(property) {
-				target[property.key] = property.valueEnd;
-			});
-			if(animation.onUpdate) {
-				animation.onUpdate.call(animation.onUpdateScope);
-			}
-			if(animation && animation.onComplete) {
-				animation.onComplete.call(animation.onCompleteScope);
-			}
+	var target;
+	function animateTarget(property) {
+		target[property.key] = property.valueEnd;
+	}
+	while(__animationsToComplete.length > 0) {
+		var animation = __animationsToComplete.shift();
+		var index = animations.indexOf(animation);
+		if(index === -1) continue;
+		animations.splice(index, 1);
+		target = animation.target;
+		animation.animatedProperties.forEach(animateTarget);
+		if(animation && animation.onComplete) {
+			animation.onComplete.call(animation.onCompleteScope);
 		}
-		__animationsToComplete.length = 0;
 	}
 };
 
